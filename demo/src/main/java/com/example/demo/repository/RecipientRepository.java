@@ -8,4 +8,6 @@ import java.util.List;
 public interface RecipientRepository extends JpaRepository<Recipient, Long> {
 
     List<Recipient> findByCapsuleCapsuleId(Long capsuleId);
+
+    boolean existsByCapsuleCapsuleIdAndEmail(Long capsuleId, String email);
 }

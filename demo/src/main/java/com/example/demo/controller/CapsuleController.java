@@ -42,8 +42,25 @@ public class CapsuleController {
         return capsuleService.getUserCapsules(user.getUserId());
     }
 
+    @GetMapping("/{id}")
+    public Capsule getCapsuleById(HttpServletRequest request, @PathVariable Long id) {
+
+        User user = (User) request.getAttribute("user");
+        return capsuleService.getCapsule(user.getUserId(), id);
+    }
+
     @GetMapping("/{id}/content")
-    public String getContent(@PathVariable Long id) {
-        return capsuleService.getDecryptedContent(id);
+    public String getContent(HttpServletRequest request, @PathVariable Long id) {
+
+        User user = (User) request.getAttribute("user");
+        return capsuleService.getDecryptedContent(id, user.getUserId());
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteCapsule(HttpServletRequest request, @PathVariable Long id) {
+
+        User user = (User) request.getAttribute("user");
+        capsuleService.deleteCapsule(user.getUserId(), id);
+        return "Deleted Successfully";
     }
 }

@@ -22,6 +22,12 @@ public class CapsuleService {
     @Autowired
     private EncryptionService encryptionService;
 
+    @Autowired
+    private RecipientRepository recipientRepo;
+
+    @Autowired
+    private AccessLogService accessLogService;
+
     public Capsule createCapsule(Long userId,
                                  String title,
                                  String description,
@@ -53,15 +59,67 @@ public class CapsuleService {
         return capsuleRepo.findByOwnerUserId(userId);
     }
 
-    public String getDecryptedContent(Long capsuleId) {
+    public Capsule getCapsule(Long userId, Long capsuleId) {
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Capsule capsule = capsuleRepo.findById(capsuleId)
                 .orElseThrow(() -> new RuntimeException("Capsule not found"));
+
+        assertCanAccess(user, capsule);
+        return capsule;
+    }
+
+    public void deleteCapsule(Long userId, Long capsuleId) {
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Capsule capsule = capsuleRepo.findById(capsuleId)
+                .orElseThrow(() -> new RuntimeException("Capsule not found"));
+
+        if (!isOwner(user, capsule)) {
+            throw new RuntimeException("Only owner can delete capsule");
+        }
+
+        capsuleRepo.delete(capsule);
+    }
+
+    public String getDecryptedContent(Long capsuleId, Long userId) {
+
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Capsule capsule = capsuleRepo.findById(capsuleId)
+                .orElseThrow(() -> new RuntimeException("Capsule not found"));
+
+        assertCanAccess(user, capsule);
 
         if (capsule.getStatus() != CapsuleStatus.UNLOCKED) {
             throw new RuntimeException("Capsule still locked");
         }
 
+        accessLogService.logAccess(user, capsule);
         return encryptionService.decrypt(capsule.getEncryptedContent());
+    }
+
+    private void assertCanAccess(User user, Capsule capsule) {
+
+        if (isOwner(user, capsule)) {
+            return;
+        }
+
+        boolean isRecipient = recipientRepo
+                .existsByCapsuleCapsuleIdAndEmail(capsule.getCapsuleId(), user.getEmail());
+
+        if (!isRecipient) {
+            throw new RuntimeException("Access denied");
+        }
+    }
+
+    private boolean isOwner(User user, Capsule capsule) {
+        return capsule.getOwner() != null
+                && capsule.getOwner().getUserId().equals(user.getUserId());
     }
 }
