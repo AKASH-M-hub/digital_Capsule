@@ -18,12 +18,15 @@ public class MediaController {
 
     @PostMapping("/upload")
     public Media uploadMedia(HttpServletRequest request,
-                             @RequestParam Long capsuleId,
-                             @RequestParam String fileUrl,
-                             @RequestParam String fileType) {
+                             @RequestBody UploadMediaRequest uploadRequest) {
 
         User user = (User) request.getAttribute("user");
-        return mediaService.addMedia(user.getUserId(), capsuleId, fileUrl, fileType);
+        return mediaService.addMedia(
+            user.getUserId(),
+            uploadRequest.getCapsuleId(),
+            uploadRequest.getFileUrl(),
+            uploadRequest.getFileType()
+        );
     }
 
     @GetMapping("/{capsuleId}")
@@ -31,5 +34,12 @@ public class MediaController {
 
         User user = (User) request.getAttribute("user");
         return mediaService.getMedia(user.getUserId(), capsuleId);
+    }
+
+    @lombok.Data
+    private static class UploadMediaRequest {
+        private Long capsuleId;
+        private String fileUrl;
+        private String fileType;
     }
 }

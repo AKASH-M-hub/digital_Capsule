@@ -19,10 +19,14 @@ public class RecipientController {
     @PostMapping("/{id}/recipients")
     public Recipient addRecipient(HttpServletRequest request,
                                   @PathVariable Long id,
-                                  @RequestParam String email) {
+                                  @RequestBody AddRecipientRequest addRecipientRequest) {
 
         User user = (User) request.getAttribute("user");
-        return recipientService.addRecipient(user.getUserId(), id, email);
+        return recipientService.addRecipient(
+            user.getUserId(),
+            id,
+            addRecipientRequest.getEmail()
+        );
     }
 
     @GetMapping("/{id}/recipients")
@@ -31,5 +35,10 @@ public class RecipientController {
 
         User user = (User) request.getAttribute("user");
         return recipientService.getRecipients(user.getUserId(), id);
+    }
+
+    @lombok.Data
+    private static class AddRecipientRequest {
+        private String email;
     }
 }

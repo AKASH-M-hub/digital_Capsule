@@ -19,19 +19,16 @@ public class CapsuleController {
 
     @PostMapping("/create")
     public Capsule createCapsule(HttpServletRequest request,
-                                 @RequestParam String title,
-                                 @RequestParam String description,
-                                 @RequestParam String content,
-                                 @RequestParam String unlockTime) {
+                                 @RequestBody CreateCapsuleRequest createRequest) {
 
         User user = (User) request.getAttribute("user");
 
         return capsuleService.createCapsule(
                 user.getUserId(),
-                title,
-                description,
-                content,
-                LocalDateTime.parse(unlockTime)
+            createRequest.getTitle(),
+            createRequest.getDescription(),
+            createRequest.getContent(),
+            LocalDateTime.parse(createRequest.getUnlockTime())
         );
     }
 
@@ -62,5 +59,13 @@ public class CapsuleController {
         User user = (User) request.getAttribute("user");
         capsuleService.deleteCapsule(user.getUserId(), id);
         return "Deleted Successfully";
+    }
+
+    @lombok.Data
+    private static class CreateCapsuleRequest {
+        private String title;
+        private String description;
+        private String content;
+        private String unlockTime;
     }
 }
