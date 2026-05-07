@@ -18,9 +18,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestParam String email,
-                        @RequestParam String password) {
+    public String login(@RequestBody LoginRequest loginRequest) {
 
-        return authService.login(email, password);
+        return authService.login(loginRequest.getEmail(), loginRequest.getPassword());
+    }
+
+    @lombok.Data
+    private static class LoginRequest {
+        private String email;
+        private String password;
     }
 }
